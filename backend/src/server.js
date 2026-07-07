@@ -1,12 +1,16 @@
 import dotenv from "dotenv";
-dotenv.config();
+const result = dotenv.config();
 import express from "express";
 import authRoutes from "./routes/auth.route.js"
 import messageRoutes from "./routes/message.route.js"
 import path from "path"
+import { connectDB } from "./lib/db.js";
 
 const app = express();
+app.use(express.json());
+
 const __dirname = path.resolve();
+
 
 const PORT = process.env.PORT || 3000;
 
@@ -24,6 +28,7 @@ if(process.env.NODE_ENV === "production"){
     })
 }
 
-app.listen(PORT, () => {
+app.listen(PORT, async() => {
     console.log(`server is listening on port ${PORT}`);
+    await connectDB();
 })
