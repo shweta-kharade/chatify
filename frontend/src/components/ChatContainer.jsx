@@ -7,13 +7,31 @@ import MessagesLoadingSkeleton from "./MessagesLoadingSkeleton";
 import MessageInput from "./MessageInput";
 
 const ChatContainer = () => {
-  const { selectedUser, getMessagesByUserId, messages , isMessagesLoading} = useChatStore();
+  const {
+    selectedUser,
+    getMessagesByUserId,
+    messages,
+    isMessagesLoading,
+    subscribeToMessages,
+    unsubscribeFromMessages,
+  } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef();
 
   useEffect(() => {
+    if (!selectedUser) return;
+
     getMessagesByUserId(selectedUser._id);
-  }, [selectedUser, getMessagesByUserId]);
+
+    subscribeToMessages();
+
+    return () => unsubscribeFromMessages();
+  }, [
+    selectedUser,
+    getMessagesByUserId,
+    subscribeToMessages,
+    unsubscribeFromMessages,
+  ]);
 
   useEffect(() => {
     if (messageEndRef.current) {
@@ -28,7 +46,6 @@ const ChatContainer = () => {
         {messages.length > 0 && !isMessagesLoading ? (
           <div className="max-w-3xl mx-auto space-y-6 ">
             {messages?.map((msg) => (
-              
               <div
                 key={msg._id}
                 className={`chat ${msg.senderId === authUser._id ? "chat-end" : "chat-start"} `}
@@ -58,9 +75,11 @@ const ChatContainer = () => {
               </div>
             ))}
             {/* scroll target */}
-            <div ref={messageEndRef}/>
+            <div ref={messageEndRef} />
           </div>
-        ) : isMessagesLoading? <MessagesLoadingSkeleton /> : (
+        ) : isMessagesLoading ? (
+          <MessagesLoadingSkeleton />
+        ) : (
           <NoChatHistoryPlaceholder name={selectedUser.fullName} />
         )}
       </div>
