@@ -9,8 +9,9 @@ import path from "path"
 import { connectDB } from "./lib/db.js";
 import { ENV } from "./lib/env.js";
 import { env } from "process";
+import { app , server} from "./lib/socket.js";
 
-const app = express();
+
 app.use(express.json({limit : "5mb"}));
 app.use(cors({origin:ENV.CLIENT_URL, credentials:true}));
 
@@ -35,7 +36,7 @@ if(process.env.NODE_ENV === "production"){
     })
 }
 
-app.listen(PORT, async() => {
+server.listen(PORT, async() => {
     console.log(`server is listening on port ${PORT}`);
     await connectDB();
 })
