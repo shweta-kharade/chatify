@@ -3,6 +3,8 @@ import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
 import { useAuthStore } from "./useAuthStore";
 
+
+
 export const useChatStore = create((set, get) => ({
   allContacts: [],
   chats: [],
@@ -85,5 +87,52 @@ export const useChatStore = create((set, get) => ({
       toast.error(error.response?.data?.message || "something went wrong");
 
     }
-  }
+  },
+subscribeToMessages: () => {
+    const { selectedUser, isSoundEnabled } = get();
+
+    if (!selectedUser) return;
+
+    const socket = useAuthStore.getState().socket;
+
+    if (!socket) {
+        console.log("Socket is not connected yet");
+        return;
+    }
+
+    socket.on("newMessage", (newMessage) => {
+        const isMessegeSentFromSelectedUser = newMessage.senderId === selectedUser._id;
+        if(!isMessegeSentFromSelectedUser) return;
+        
+        const currentMessages = get().messages;
+
+        set({
+            messages: [...currentMessages, newMessage],
+        });
+
+        if (isSoundEnabled) {
+            const notificationSound = new Audio(
+                "/sounds/notification.mp3"
+            );
+
+            notificationSound.currentTime = 0;
+
+            notificationSound
+                .play()
+                .catch((err) =>
+                    console.log("Audio failed", err)
+                );
+        }
+    });
+},
+
+  unsubscribeFromMessages: () => {
+    const socket = useAuthStore.getState().socket;
+
+    if (!socket) {
+        return;
+    }
+
+    socket.off("newMessage");
+},
 }));
